@@ -1,0 +1,8 @@
+=== Prompt Police Evaluation Results ===
+Total Samples: 60 (30 Adversarial, 30 Safe)
+
+Accuracy:           98.33%
+Precision:          96.77%
+Recall (Detection): 100.00%
+F1 Score:           98.36%
+False Positive Rate: 3.33%
