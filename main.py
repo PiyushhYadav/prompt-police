@@ -5,6 +5,9 @@ import os
 import json
 import base64
 from groq import Groq
+from dotenv import load_dotenv
+
+load_dotenv() # Load variables from .env if it exists
 
 app = FastAPI()
 
