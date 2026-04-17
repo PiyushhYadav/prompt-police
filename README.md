@@ -2,9 +2,12 @@
 
 🚀 **Live Demo:** https://promptpolice.netlify.app/
 
+
 <img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/c1f165c7-2687-4d30-bfbb-80b55d4b04d8" />
 
+
 <img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/23f81ecf-5cc0-4a5d-99ca-c188600db6b7" />
+
 
 A minimalist, editorial-first AI safety system that inspects, intercepts, and classifies generative AI prompts **before they reach the language model**.
 
