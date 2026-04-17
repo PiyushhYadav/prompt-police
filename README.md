@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 🛡️ Prompt Police
 
 A minimalist, editorial-first AI Safety protocol designed to inspect, intercept, and categorize generative AI prompts before they reach the language model. 
