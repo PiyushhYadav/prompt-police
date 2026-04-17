@@ -1,51 +1,86 @@
 # 🛡️ Prompt Police
 
-A minimalist, editorial-first AI Safety protocol designed to inspect, intercept, and categorize generative AI prompts before they reach the language model. 
+🚀 **Live Demo:** https://promptpolice.netlify.app/
 
-Prompt Police uses **Latent Space Mapping** (Sentence-Transformers) and a **Hybrid Lexical Firewall** to classify text in real-time. It analyzes the linguistic structure of a prompt and measures its similarity against known adversarial clusters (DAN overrides, prompt injections, deepfake generation syntax, etc.) at ultra-low latency.
+<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/c1f165c7-2687-4d30-bfbb-80b55d4b04d8" />
+
+<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/23f81ecf-5cc0-4a5d-99ca-c188600db6b7" />
+
+A minimalist, editorial-first AI safety system that inspects, intercepts, and classifies generative AI prompts **before they reach the language model**.
+
+Prompt Police combines **Latent Space Mapping (Sentence-Transformers)** with a **Hybrid Lexical Firewall** to detect adversarial prompts in real time. It analyzes linguistic structure and compares it against known attack patterns like prompt injections, DAN overrides, and deepfake instructions — all with ultra-low latency.
+
+---
 
 ## 🚀 Features
-* **Real-time Latent Mapping:** Uses `all-MiniLM-L6-v2` to map semantic intent, catching "Zero-Day" jailbreaks based purely on structural similarity without needing explicit hardcoded regex.
-* **Hybrid Firewall Bounds:** A secondary lexical engine traps obvious explicit threats dynamically (e.g., violent acts, bomb creation) before they confuse the embedding clusters.
-* **Base64 Evasion Detection:** Automatically scans and intercepts prompts that have been obfuscated using encoding specifically targeting system parsers.
-* **Clean UI Architecture:** A fully local, responsive frontend using Tailwind CSS with immersive analytical threat reporting.
-* **Local Evaluation Suite:** Includes an isolated `evaluate.py` script calculating Accuracy, F1 Scores, and False Positive Rates against an unseen 60-prompt benchmark dataset.
 
-## ⚙️ Installation
+* **Real-time Latent Mapping**
+  Uses `all-MiniLM-L6-v2` to detect even unseen (“zero-day”) jailbreaks based on semantic similarity.
 
-You will need Python 3.9+ to run the backend smoothly.
+* **Hybrid Firewall System**
+  A lexical layer catches explicit threats (violence, illegal instructions) before they bypass embeddings.
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/prompt-police.git
-   cd prompt-police
-   ```
+* **Base64 Evasion Detection**
+  Identifies and blocks obfuscated prompts targeting system-level bypasses.
 
-2. **Install core dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-   *(Ensure you have basic PyTorch compatibilities if running in a unique environment).*
+* **Clean UI Architecture**
+  Lightweight frontend using Tailwind CSS with real-time threat feedback.
 
-3. **Start the Classifier Engine**
-   ```bash
-   uvicorn main:app --host 0.0.0.0 --port 8000
-   ```
-   *Note: On its very first run, it will automatically download the 80MB HuggingFace MiniLM mapping weights.*
+* **Evaluation Suite**
+  Includes `evaluate.py` for performance testing (Accuracy, Precision, Recall, FPR).
 
-4. **Launch the UI**
-   Simply open `index.html` in any modern web browser! (No Node/NPM required).
+---
 
 ## 📊 Evaluation Metrics
-Running the internal offline test suite (`python evaluate.py`) yields the following baseline metrics against our current safe/adv distribution:
+
+Results from internal benchmark (60-prompt dataset):
 
 * **Accuracy:** 98.3%
 * **Precision:** 96.7%
 * **Recall:** 100.0%
 * **False Positive Rate:** < 3.5%
 
+---
+
+## ⚙️ Installation
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your-username/prompt-police.git
+cd prompt-police
+```
+
+### 2. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Run backend server
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+> On first run, the model (~80MB) will download automatically.
+
+### 4. Launch frontend
+
+Open `index.html` in your browser.
+
+---
+
+## 🧠 How It Works
+
+1. Input prompt is received
+2. Semantic embedding is generated
+3. Compared with adversarial clusters
+4. Lexical firewall scans for explicit threats
+5. Final classification: **SAFE / ADVERSARIAL**
+
+---
+
 ## 📝 License
-MIT License - open sourced for AI Security researchers and enthusiasts.
-=======
-# prompt-police
-Real-time AI bouncer that classifies user prompts as SAFE or ADVERSARIAL using LLM-as-Judge
+
+MIT License — open-sourced for AI security researchers and developers.
