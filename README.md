@@ -50,4 +50,3 @@ MIT License - open sourced for AI Security researchers and enthusiasts.
 =======
 # prompt-police
 Real-time AI bouncer that classifies user prompts as SAFE or ADVERSARIAL using LLM-as-Judge
->>>>>>> ba8a7df73ad461da28957ddbdbc80bda4e77df54
