@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
 import json
+import re
 import base64
 from groq import Groq
 from dotenv import load_dotenv
@@ -63,48 +64,91 @@ def try_decode_b64(text: str) -> str:
         pass
     return text
 
-# Candidate models in preferred priority order
-CANDIDATE_MODELS = [
+def extract_json(content: str):
+    if not content:
+        raise ValueError("Empty model response")
+    content = content.strip()
+    try:
+        return json.loads(content)
+    except Exception:
+        pass
+    
+    match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', content, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group(1))
+        except Exception:
+            pass
+
+    match = re.search(r'(\{.*\})', content, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group(1))
+        except Exception:
+            pass
+            
+    raise ValueError(f"Could not parse JSON from output: {content}")
+
+PREFERRED_MODELS = [
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "qwen/qwen3.8-27b",
+    "openai/gpt-oss-safeguard-20b",
     "llama-3.3-70b-versatile",
     "llama-3.1-8b-instant",
-    "llama-3.1-70b-versatile",
-    "llama3-70b-8192",
-    "llama3-8b-8192",
 ]
 
-def query_groq_judge(prompt_to_classify: str):
-    last_exception = None
-    for model_name in CANDIDATE_MODELS:
-        try:
-            completion = client.chat.completions.create(
-                model=model_name,
-                messages=[
-                    {"role": "user", "content": META_PROMPT.replace("{USER_PROMPT}", prompt_to_classify)}
-                ],
-                response_format={"type": "json_object"},
-                temperature=0.0,
-            )
-            response_content = completion.choices[0].message.content
-            result = json.loads(response_content)
-            
-            return {
-                "label": result.get("label", "SAFE"),
-                "score": float(result.get("score", 0.0)),
-                "category": result.get("category", "safe"),
-                "reason": result.get("reason", "No reason provided."),
-                "model_used": model_name
-            }
-        except Exception as e:
-            last_exception = e
-            err_msg = str(e)
-            print(f"Warning: Model {model_name} failed: {err_msg}")
-            # If 404/model_not_found/access issue, continue to next model in CANDIDATE_MODELS
-            if "model_not_found" in err_msg or "404" in err_msg or "does not exist" in err_msg:
-                continue
-            # If rate limit or other temporary error, try fallback model as well
-            continue
+def get_working_models():
+    try:
+        live_models = {m.id for m in client.models.list().data}
+        available_preferred = [m for m in PREFERRED_MODELS if m in live_models]
+        if available_preferred:
+            return available_preferred
+        # If none of preferred in live_models, return non-whisper live models
+        chat_candidates = [m for m in live_models if "whisper" not in m]
+        if chat_candidates:
+            return chat_candidates
+    except Exception as e:
+        print(f"Could not fetch models list: {e}")
+    return PREFERRED_MODELS
 
-    raise last_exception or RuntimeError("All candidate Groq models failed.")
+def query_groq_judge(prompt_to_classify: str):
+    models_to_try = get_working_models()
+    last_exception = None
+    
+    for model_name in models_to_try:
+        for use_json_mode in [True, False]:
+            try:
+                kwargs = {
+                    "model": model_name,
+                    "messages": [
+                        {"role": "user", "content": META_PROMPT.replace("{USER_PROMPT}", prompt_to_classify)}
+                    ],
+                    "temperature": 0.0,
+                }
+                if use_json_mode:
+                    kwargs["response_format"] = {"type": "json_object"}
+                
+                completion = client.chat.completions.create(**kwargs)
+                response_content = completion.choices[0].message.content
+                result = extract_json(response_content)
+                
+                return {
+                    "label": result.get("label", "SAFE"),
+                    "score": float(result.get("score", 0.0)),
+                    "category": result.get("category", "safe"),
+                    "reason": result.get("reason", "No reason provided."),
+                    "model_used": model_name
+                }
+            except Exception as e:
+                err_msg = str(e)
+                last_exception = e
+                print(f"Model {model_name} (json_mode={use_json_mode}) failed: {err_msg}")
+                if "response_format" in err_msg or "json_object" in err_msg:
+                    continue
+                break
+
+    raise last_exception or RuntimeError("All candidate models failed to classify prompt.")
 
 @app.get("/")
 @app.get("/health")
