@@ -18,40 +18,47 @@ Prompt Police uses a **Groq LLM-as-Judge** pipeline (`llama-3.3-70b-versatile`) 
 * **Base64 Evasion Detection:** Automatically detects and decodes base64-encoded prompts before classification — catching obfuscation attempts that try to hide adversarial intent from safety layers.
 * **Structured Output Schema:** Every classification returns `label` (`SAFE`/`ADVERSARIAL`), `score` (0.0–1.0), `category` (DAN, prompt-injection, obfuscation, hypothetical, extraction, safe, other), and a one-sentence `reason`.
 * **Clean UI Architecture:** A fully local, responsive frontend using Tailwind CSS with immersive analytical threat reporting — no Node/NPM required, just open `index.html`.
-* **Local Evaluation Suite:** Includes an isolated `evaluate.py` script calculating Accuracy, Precision, Recall, F1 Score, and False Positive Rate against an unseen 60-prompt benchmark dataset (30 adversarial, 30 safe).
+* **Evaluation Suite:** Includes an isolated `evaluate.py` test suite to benchmark classification performance against a 60-prompt test dataset (30 adversarial, 30 safe).
 
 ---
 
-## 🏗️ Architecture
+## 🧠 How It Works
+
+Prompt Police operates as an **LLM-as-Judge** security gatekeeper positioned in front of downstream language models:
 
 ```
 User Prompt
     │
     ▼
-Base64 Pre-Filter (try_decode_b64)
-    │  Detects & decodes encoded payloads before classification
+[Phase 1] Base64 Pre-Filter (try_decode_b64)
+    │  Detects & decodes obfuscated payloads
     ▼
-Groq LLM Judge (llama-3.3-70b-versatile, temp=0.0)
-    │  Structured JSON prompt → { label, score, category, reason }
+[Phase 2] Security Meta-Prompt Injection
+    │  Wraps prompt with strict safety rules & JSON schema
     ▼
-FastAPI Response → Frontend UI
+[Phase 3] Groq LLM-as-Judge (llama-3.3-70b-versatile, temp=0.0)
+    │  Deterministic zero-shot evaluation & categorization
+    ▼
+[Phase 4] Structured Verdict Extraction
+    │  { label, score, category, reason }
+    ▼
+[Phase 5] FastAPI Response ──▶ UI Dashboard / Downstream App
 ```
 
-> **Note:** The classifier runs entirely via the Groq API — no local heavy model weights are required to run the pipeline.
-
----
-
-## 📊 Evaluation Metrics
-
-Running the benchmark suite (`python evaluate.py` against a live server) on the current 60-prompt dataset (30 adversarial, 30 safe) yields:
-
-* **Accuracy:** 98.33%
-* **Precision:** 96.77%
-* **Recall (Detection Rate):** 100.00%
-* **F1 Score:** 98.36%
-* **False Positive Rate:** 3.33%
-
-> These results are captured in `eval_results.txt`. Re-run `python evaluate.py` with the server running to refresh them.
+1. **Base64 Pre-Filter & De-Obfuscation:**
+   Incoming prompts first pass through `try_decode_b64()`. If an encoded payload is detected, it is decoded into plaintext so hidden adversarial instructions cannot bypass safety evaluation.
+2. **Security Meta-Prompt Wrapping:**
+   The decoded prompt is injected into a comprehensive security meta-prompt. The meta-prompt instructs the judge to identify adversarial patterns — including DAN overrides, prompt injections, system prompt extractions, and malicious roleplay/hypotheticals — while permitting benign roleplay and normal queries.
+3. **Deterministic LLM-as-Judge Evaluation:**
+   The wrapped prompt is evaluated zero-shot by `llama-3.3-70b-versatile` via the Groq API at `temperature=0.0` with `response_format={"type": "json_object"}`. Inference runs entirely via Groq's high-speed API — no local weights or heavy dependencies required.
+4. **Structured Threat Telemetry:**
+   The LLM judge returns a validated JSON object with four core signals:
+   * `label`: Binary verdict (`SAFE` or `ADVERSARIAL`).
+   * `score`: Threat severity / confidence rating from `0.0` (definitely safe) to `1.0` (definitely adversarial).
+   * `category`: Identified threat vector (`DAN`, `prompt-injection`, `obfuscation`, `hypothetical`, `extraction`, `safe`, or `other`).
+   * `reason`: A concise, human-readable explanation of why the prompt was flagged or permitted.
+5. **Enforcement & Frontend Dispatch:**
+   FastAPI dispatches the verdict to the caller, allowing downstream systems to block malicious queries or forward safe prompts, while updating the frontend threat dashboard in real time.
 
 ---
 
@@ -83,6 +90,12 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 
 ### 5. Launch the UI
 Simply open `index.html` in any modern web browser! (No Node/NPM required).
+
+### 6. (Optional) Run the Evaluation Suite
+With the server running, evaluate the classifier against the 60-sample benchmark dataset:
+```bash
+python evaluate.py
+```
 
 ---
 
