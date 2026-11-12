@@ -1,8 +1,16 @@
 # 🛡️ Prompt Police
 
+🚀 **Live Demo:** https://promptpolice.netlify.app/
+
+<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/c1f165c7-2687-4d30-bfbb-80b55d4b04d8" />
+
+<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/23f81ecf-5cc0-4a5d-99ca-c188600db6b7" />
+
 A real-time AI prompt safety classifier that acts as a bouncer between the user and the language model — intercepting, analyzing, and categorizing prompts as **SAFE** or **ADVERSARIAL** before they execute.
 
 Prompt Police uses a **Groq LLM-as-Judge** pipeline (`llama-3.3-70b-versatile`) to classify text with zero-shot accuracy. It also includes a lightweight **Base64 obfuscation pre-filter** that decodes encoded payloads before classification, catching evasion attempts transparently.
+
+---
 
 ## 🚀 Features
 
@@ -12,34 +20,7 @@ Prompt Police uses a **Groq LLM-as-Judge** pipeline (`llama-3.3-70b-versatile`) 
 * **Clean UI Architecture:** A fully local, responsive frontend using Tailwind CSS with immersive analytical threat reporting — no Node/NPM required, just open `index.html`.
 * **Local Evaluation Suite:** Includes an isolated `evaluate.py` script calculating Accuracy, Precision, Recall, F1 Score, and False Positive Rate against an unseen 60-prompt benchmark dataset (30 adversarial, 30 safe).
 
-## ⚙️ Installation
-
-You will need Python 3.9+ and a free [Groq API key](https://console.groq.com/).
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/prompt-police.git
-   cd prompt-police
-   ```
-
-2. **Install core dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Set your Groq API key**
-   ```bash
-   cp .env.example .env
-   # Edit .env and paste your GROQ_API_KEY
-   ```
-
-4. **Start the Classifier Engine**
-   ```bash
-   uvicorn main:app --host 0.0.0.0 --port 8000
-   ```
-
-5. **Launch the UI**
-   Simply open `index.html` in any modern web browser! (No Node/NPM required).
+---
 
 ## 🏗️ Architecture
 
@@ -56,7 +37,9 @@ Groq LLM Judge (llama-3.3-70b-versatile, temp=0.0)
 FastAPI Response → Frontend UI
 ```
 
-> **Note:** The classifier runs entirely via the Groq API — no local model weights are downloaded. No Sentence-Transformers or lexical firewall is used in the current pipeline.
+> **Note:** The classifier runs entirely via the Groq API — no local heavy model weights are required to run the pipeline.
+
+---
 
 ## 📊 Evaluation Metrics
 
@@ -70,6 +53,39 @@ Running the benchmark suite (`python evaluate.py` against a live server) on the 
 
 > These results are captured in `eval_results.txt`. Re-run `python evaluate.py` with the server running to refresh them.
 
+---
+
+## ⚙️ Installation
+
+You will need Python 3.9+ and a free [Groq API key](https://console.groq.com/).
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/PiyushhYadav/prompt-police.git
+cd prompt-police
+```
+
+### 2. Install core dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Set your Groq API key
+```bash
+cp .env.example .env
+# Edit .env and paste your GROQ_API_KEY
+```
+
+### 4. Start the Classifier Engine
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+### 5. Launch the UI
+Simply open `index.html` in any modern web browser! (No Node/NPM required).
+
+---
+
 ## 📝 License
 
-MIT License — open sourced for AI Security researchers and enthusiasts.
+MIT License — open-sourced for AI security researchers and developers.
