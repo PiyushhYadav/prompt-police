@@ -8,13 +8,13 @@
 
 A real-time AI prompt safety classifier that acts as a bouncer between the user and the language model — intercepting, analyzing, and categorizing prompts as **SAFE** or **ADVERSARIAL** before they execute.
 
-Prompt Police uses a **Groq LLM-as-Judge** pipeline (`llama-3.3-70b-versatile`) to classify text with zero-shot accuracy. It also includes a lightweight **Base64 obfuscation pre-filter** that decodes encoded payloads before classification, catching evasion attempts transparently.
+Prompt Police uses a **Groq LLM-as-Judge** pipeline (supporting `openai/gpt-oss-120b`, `openai/gpt-oss-20b`, and `llama-3.3-70b-versatile`) to classify text with zero-shot accuracy. It also includes a lightweight **Base64 obfuscation pre-filter** that decodes encoded payloads before classification, catching evasion attempts transparently.
 
 ---
 
 ## 🚀 Features
 
-* **LLM-as-Judge Classifier:** Sends every prompt to `llama-3.3-70b-versatile` via the Groq API at `temperature=0.0` with a structured JSON `response_format`, returning a `label`, `score`, `category`, and `reason` for every request.
+* **LLM-as-Judge Classifier:** Sends every prompt to high-capacity reasoning models via the Groq API at `temperature=0.0` with structured JSON output, returning a `label`, `score`, `category`, and `reason` for every request with automatic model fallback resilience.
 * **Base64 Evasion Detection:** Automatically detects and decodes base64-encoded prompts before classification — catching obfuscation attempts that try to hide adversarial intent from safety layers.
 * **Structured Output Schema:** Every classification returns `label` (`SAFE`/`ADVERSARIAL`), `score` (0.0–1.0), `category` (DAN, prompt-injection, obfuscation, hypothetical, extraction, safe, other), and a one-sentence `reason`.
 * **Clean UI Architecture:** A fully local, responsive frontend using Tailwind CSS with immersive analytical threat reporting — no Node/NPM required, just open `index.html`.
@@ -36,7 +36,7 @@ User Prompt
 [Phase 2] Security Meta-Prompt Injection
     │  Wraps prompt with strict safety rules & JSON schema
     ▼
-[Phase 3] Groq LLM-as-Judge (llama-3.3-70b-versatile, temp=0.0)
+[Phase 3] Groq LLM-as-Judge (Inference Engine, temp=0.0)
     │  Deterministic zero-shot evaluation & categorization
     ▼
 [Phase 4] Structured Verdict Extraction
@@ -50,7 +50,7 @@ User Prompt
 2. **Security Meta-Prompt Wrapping:**
    The decoded prompt is injected into a comprehensive security meta-prompt. The meta-prompt instructs the judge to identify adversarial patterns — including DAN overrides, prompt injections, system prompt extractions, and malicious roleplay/hypotheticals — while permitting benign roleplay and normal queries.
 3. **Deterministic LLM-as-Judge Evaluation:**
-   The wrapped prompt is evaluated zero-shot by `llama-3.3-70b-versatile` via the Groq API at `temperature=0.0` with `response_format={"type": "json_object"}`. Inference runs entirely via Groq's high-speed API — no local weights or heavy dependencies required.
+   The wrapped prompt is evaluated zero-shot via the Groq API at `temperature=0.0` with structured JSON output mode. Inference runs entirely via Groq's high-speed API — with automatic model discovery and fallback across active Groq models (`openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `llama-3.3-70b-versatile`, etc.) — requiring no local weights or heavy dependencies.
 4. **Structured Threat Telemetry:**
    The LLM judge returns a validated JSON object with four core signals:
    * `label`: Binary verdict (`SAFE` or `ADVERSARIAL`).
