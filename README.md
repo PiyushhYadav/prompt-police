@@ -1,20 +1,20 @@
-<<<<<<< HEAD
 # 🛡️ Prompt Police
 
-A minimalist, editorial-first AI Safety protocol designed to inspect, intercept, and categorize generative AI prompts before they reach the language model. 
+A real-time AI prompt safety classifier that acts as a bouncer between the user and the language model — intercepting, analyzing, and categorizing prompts as **SAFE** or **ADVERSARIAL** before they execute.
 
-Prompt Police uses **Latent Space Mapping** (Sentence-Transformers) and a **Hybrid Lexical Firewall** to classify text in real-time. It analyzes the linguistic structure of a prompt and measures its similarity against known adversarial clusters (DAN overrides, prompt injections, deepfake generation syntax, etc.) at ultra-low latency.
+Prompt Police uses a **Groq LLM-as-Judge** pipeline (`llama-3.3-70b-versatile`) to classify text with zero-shot accuracy. It also includes a lightweight **Base64 obfuscation pre-filter** that decodes encoded payloads before classification, catching evasion attempts transparently.
 
 ## 🚀 Features
-* **Real-time Latent Mapping:** Uses `all-MiniLM-L6-v2` to map semantic intent, catching "Zero-Day" jailbreaks based purely on structural similarity without needing explicit hardcoded regex.
-* **Hybrid Firewall Bounds:** A secondary lexical engine traps obvious explicit threats dynamically (e.g., violent acts, bomb creation) before they confuse the embedding clusters.
-* **Base64 Evasion Detection:** Automatically scans and intercepts prompts that have been obfuscated using encoding specifically targeting system parsers.
-* **Clean UI Architecture:** A fully local, responsive frontend using Tailwind CSS with immersive analytical threat reporting.
-* **Local Evaluation Suite:** Includes an isolated `evaluate.py` script calculating Accuracy, F1 Scores, and False Positive Rates against an unseen 60-prompt benchmark dataset.
+
+* **LLM-as-Judge Classifier:** Sends every prompt to `llama-3.3-70b-versatile` via the Groq API at `temperature=0.0` with a structured JSON `response_format`, returning a `label`, `score`, `category`, and `reason` for every request.
+* **Base64 Evasion Detection:** Automatically detects and decodes base64-encoded prompts before classification — catching obfuscation attempts that try to hide adversarial intent from safety layers.
+* **Structured Output Schema:** Every classification returns `label` (`SAFE`/`ADVERSARIAL`), `score` (0.0–1.0), `category` (DAN, prompt-injection, obfuscation, hypothetical, extraction, safe, other), and a one-sentence `reason`.
+* **Clean UI Architecture:** A fully local, responsive frontend using Tailwind CSS with immersive analytical threat reporting — no Node/NPM required, just open `index.html`.
+* **Local Evaluation Suite:** Includes an isolated `evaluate.py` script calculating Accuracy, Precision, Recall, F1 Score, and False Positive Rate against an unseen 60-prompt benchmark dataset (30 adversarial, 30 safe).
 
 ## ⚙️ Installation
 
-You will need Python 3.9+ to run the backend smoothly.
+You will need Python 3.9+ and a free [Groq API key](https://console.groq.com/).
 
 1. **Clone the repository**
    ```bash
@@ -26,28 +26,50 @@ You will need Python 3.9+ to run the backend smoothly.
    ```bash
    pip install -r requirements.txt
    ```
-   *(Ensure you have basic PyTorch compatibilities if running in a unique environment).*
 
-3. **Start the Classifier Engine**
+3. **Set your Groq API key**
+   ```bash
+   cp .env.example .env
+   # Edit .env and paste your GROQ_API_KEY
+   ```
+
+4. **Start the Classifier Engine**
    ```bash
    uvicorn main:app --host 0.0.0.0 --port 8000
    ```
-   *Note: On its very first run, it will automatically download the 80MB HuggingFace MiniLM mapping weights.*
 
-4. **Launch the UI**
+5. **Launch the UI**
    Simply open `index.html` in any modern web browser! (No Node/NPM required).
 
-## 📊 Evaluation Metrics
-Running the internal offline test suite (`python evaluate.py`) yields the following baseline metrics against our current safe/adv distribution:
+## 🏗️ Architecture
 
-* **Accuracy:** 98.3%
-* **Precision:** 96.7%
-* **Recall:** 100.0%
-* **False Positive Rate:** < 3.5%
+```
+User Prompt
+    │
+    ▼
+Base64 Pre-Filter (try_decode_b64)
+    │  Detects & decodes encoded payloads before classification
+    ▼
+Groq LLM Judge (llama-3.3-70b-versatile, temp=0.0)
+    │  Structured JSON prompt → { label, score, category, reason }
+    ▼
+FastAPI Response → Frontend UI
+```
+
+> **Note:** The classifier runs entirely via the Groq API — no local model weights are downloaded. No Sentence-Transformers or lexical firewall is used in the current pipeline.
+
+## 📊 Evaluation Metrics
+
+Running the benchmark suite (`python evaluate.py` against a live server) on the current 60-prompt dataset (30 adversarial, 30 safe) yields:
+
+* **Accuracy:** 98.33%
+* **Precision:** 96.77%
+* **Recall (Detection Rate):** 100.00%
+* **F1 Score:** 98.36%
+* **False Positive Rate:** 3.33%
+
+> These results are captured in `eval_results.txt`. Re-run `python evaluate.py` with the server running to refresh them.
 
 ## 📝 License
-MIT License - open sourced for AI Security researchers and enthusiasts.
-=======
-# prompt-police
-Real-time AI bouncer that classifies user prompts as SAFE or ADVERSARIAL using LLM-as-Judge
->>>>>>> ba8a7df73ad461da28957ddbdbc80bda4e77df54
+
+MIT License — open sourced for AI Security researchers and enthusiasts.
